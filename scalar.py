@@ -14,6 +14,17 @@ class Scalar:
 
     For specific models (e.g. φ^3 theory) use one of the pre-written
     subclasses; these also serve as a template for writing your own subclass.
+
+    Attributes
+    ----------
+    V : callable
+        Tree-level potential. Calling signature ``V(φ) -> ndarray or float``.
+        Here `φ` is an array_like of field values. `V` must return an ndarray
+        or scalar with the same shape as `φ`.
+    rtol : float, default=100*`eps`
+        Relative tolerance passed to ODE solver and integrator.
+    atol : float, default=1e-15
+        Absolute tolerance passed to ODE solver and integrator.
     """
 
     def __init__(self, V):
@@ -53,7 +64,7 @@ class Scalar:
         Returns
         -------
         ndarray or float
-            n'th derivative of the potential w.r.t. `φ`.
+            nth derivative of the potential w.r.t. `φ`.
         """
 
         if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
@@ -330,6 +341,15 @@ class Phi3(Scalar):
     """Subclass for φ^3 theories with tree-level potential
 
     `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
+
+    Attributes
+    ----------
+    m2 : float
+        Tree-level mass-squared
+    α : float
+        Tree-level cubic coupling
+    λ : float
+        Tree-level quartic coupling
     """
 
     def __init__(self,m2,α,λ):
@@ -357,7 +377,7 @@ class Phi3(Scalar):
         Scalar.__init__(self,V)
 
     def dV(self,φ,n=1):
-        """Model-specific n'th derivative of the tree-level potential w.r.t. `φ`
+        """Model-specific nth derivative of the tree-level potential w.r.t. `φ`
         to eliminate any issues with roundoff error.
 
         Parameters
@@ -370,7 +390,7 @@ class Phi3(Scalar):
         Returns
         -------
         ndarray or float
-            n'th derivative of the potential w.r.t. `φ`.
+            nth derivative of the potential w.r.t. `φ`.
         """
         if n==1: return self.m2*φ + self.α/2.*φ*2 + self.λ/6.*φ**3 + 0j
         if n==2: return self.m2 + self.α*φ + self.λ/2.*φ**2 + 0j
