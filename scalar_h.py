@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy import integrate
+from scipy import integrate,optimize
 from matplotlib import rc,rcParams,colors
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
@@ -109,7 +109,16 @@ class Scalar:
         #   double k ------ FRG scale k
         #   double (n,) U - scale-dependent effective action at the scale k
         #   double (n,) φ - field values at which U is evaluated
+        #
+        #   dict options {
+        #       print_k=False - if True, print k
+        #   }
         ########################################################################
+        if options == None: options = {}
+        options.setdefault('print_k',False)
+
+        if options['print_k']: print(k)
+
         d2 = FinDiff(0,φ,2,acc=2)           # define second derivative operator using finite differences
         Upp = d2(U)
         Vpp = self.dV(φ,n=2)[:,None]
@@ -120,7 +129,7 @@ class Scalar:
         result = k*cond/V4 * (-(kt2 + Upp) + np.sqrt((kt2 + Upp)**2 + kt2**2*V4/(16*π**2)))
         return result
 
-    def flow_eqn_unmodified(self,k,U,φ,Λ=None,options={}):
+    def flow_eqn_unmodified(self,k,U,φ,Λ=None,options=None):
         ########################################################################
         # Exact flow equation for the effective action in the unmodified FRG.
         # Use this flow equation to compare the (non-convex) QSEA to the
@@ -134,11 +143,16 @@ class Scalar:
         #   double Λ ------- QSEA cutoff scale that applies the momentum cutoff p^2 + V''(φ) < Λ^2
         #                    if None, no condition is applied to the flow.
         #   dict options {
-        #       pcond=True - if True, apply momentum cutoff p^2 + V''(φ) < Λ^2 to the flow
+        #       pcond=True -------- if True, apply momentum cutoff p^2 + V''(φ) < Λ^2 to the flow
+        #       print_k=False - if True, print k
         #   }
         ########################################################################
-        print(k)
-        if not 'pcond' in options: options['pcond'] = True
+        if options == None: options = {}
+        options.setdefault('pcond',True)
+        options.setdefault('print_k',False)
+
+        if options['print_k']: print(k)
+
         if Λ == None or options['pcond'] == False: cond = np.ones_like(φ)
         else:
             pmax = np.maximum(Λ**2-self.dV(φ,n=2),0)**0.5 + 0j
@@ -149,7 +163,7 @@ class Scalar:
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
 
-    def flow(self,φ,k,eqn='LPA_0T',method='RK45',verbose=True):
+    def flow(self,φ,k,eqn='LPA_0T',method='RK45',verbose=True,options=None):
         ########################################################################
         # solve flow equations using grid method, in which φ is discretized and
         # k is treated continuously using Runge-Kutta
@@ -181,8 +195,8 @@ class Scalar:
 
         # define equations that can be used
         eqns = {
-            'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ),
-            'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0]),
+            'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ,options=options),
+            'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0],options=options),
             }
 
         # choose which flow equation to use; if not valid, throw error
