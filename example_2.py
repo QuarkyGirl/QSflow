@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
-from scalar_h import Phi3
+from scalar import Phi3
 from plot_h import *
 π = np.pi
 
