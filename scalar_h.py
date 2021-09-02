@@ -9,111 +9,173 @@ from findiff import FinDiff
 γ_E = np.euler_gamma
 
 class Scalar:
-    ############################################################################
-    # Parent class for computing the FRG flow of the quasi-stationary effective
-    # action for scalar field theories.
-    #
-    # For specific models (e.g. φ^3 theory) use one of the pre-written
-    # subclasses; these also serve as a template for writing your own subclass
-    #
-    # Typical usage without using subclass:
-    # V = lambda x: [your potential]
-    # scalar = Scalar(V)
-    # sol = scalar.flow(φ,k)
-    ############################################################################
+    """Parent class for computing the FRG flow of the quasi-stationary effective
+    action for scalar field theories.
+
+    For specific models (e.g. φ^3 theory) use one of the pre-written
+    subclasses; these also serve as a template for writing your own subclass.
+
+    Examples
+    --------
+    Typical usage:
+    >>> V = lambda x: ...
+    ... scalar = Scalar(V)
+    ... sol = scalar.flow(φ,k)
+    """
 
     def __init__(self, V):
-        ########################################################################
-        # Class constructor
-        # arguments:
-        #   double (n,) V( (double (n,) φ ) - function for tree-level action
-        ########################################################################
+        """Class constructor.
+
+        Parameters
+        ----------
+        V : callable
+            Tree-level potential. Calling signature ``V(φ) -> ndarray or float``.
+            Here `φ` is an array_like of field values. `V` must return an ndarray
+            or scalar with the same shape as `φ`.
+        """
+
         self.V = V
         self.rtol,self.atol = (100*np.finfo(np.float).eps,1.e-15)   # relative and absolute tolerances
 
-    def dV(self,φ,δ=1.e-10,n=1):
-        ########################################################################
-        # generic placeholder for the nth derivative of the potential
-        # returns:
-        #   double (n,) --- n'th derivative of the potential w.r.t. φ
-        # arguments:
-        #   double (n,) φ - field value
-        #   double δ ------ change in field value for derivative
-        #   int n --------- order of the derivative
-        ########################################################################
+    def dV(self, φ, δ=1.e-10, n=1):
+        """Generic placeholder for the nth derivative of the potential w.r.t. `φ`
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field value.
+        δ : ndarray or float, default=1e-10
+            Change in field value for derivative. If ndarray, must have same
+            shape as `φ`.
+        n : int, default=1
+            Order of the derivative.
+
+        Returns
+        -------
+        ndarray or float
+            n'th derivative of the potential w.r.t. `φ`.
+        """
+
         if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
         elif n >1: return (self.dV(φ+δ,δ=δ,n=n-1) - self.dV(φ-δ,δ=δ,n=n-1))/δ
         else:
             print('Error on dV: n not INT >= 1')
 
-    def V_CW(self,φ,Λ,Π=0):
-        ########################################################################
-        # Coleman-Weinberg potential: zero-temperature component of effective
-        # potential.
-        # returns:
-        #   double (n,) ---- potential
-        # arguments:
-        #   double (n,) φ -- field value
-        #   double (n,) m2 - field-dependent tree-level mass squared: m^2(φ) = V''(φ)
-        #   double Λ ------- FRG UV cutoff
-        ########################################################################
-        m2_φ = self.dV(φ,n=2)
-        m2 = self.dV(0.0,n=2)
-        Λ = np.maximum(Λ**2-m2_φ,0)**0.5 + 0j
+    def V_CW(self, φ, Λ, Π=0., QSEA=True):
+        """Coleman-Weinberg potential for cutoff renormalization at one-loop.
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field values at which to evaluate potential.
+        Λ : float
+            UV cutoff.
+        Π : ndarray or float, optional
+            The thermal dressing of the squared mass. Default is 0.
+        QSEA : bool, default=True
+            If `True`, treats `Λ` as the QSEA fluctuation cutoff, so that the
+            momentum cutoff `p^2 < Λ^2 - m^2(φ)` is field-dependent. If `False`,
+            treats `Λ` directly as the momentum cutoff `p^2 < Λ^2`.
+
+        Returns
+        -------
+        ndarray or float
+            CW potential with same shape as `φ`.
+        """
+        # TODO : double check dressing
+        m2_φ = self.dV(φ,n=2) + Π
+        m2 = self.dV(0.0,n=2) + Π
+        if QSEA: Λ = np.maximum(Λ**2-m2_φ,0)**0.5 + 0j
         return 1/(64*π**2)*(Λ**2 *(m2_φ-m2) + Λ**4* np.log((Λ**2 + m2_φ)/(Λ**2 + m2)) - m2_φ**2* np.log((Λ**2 + m2_φ)/m2_φ) + m2**2* np.log((Λ**2 + m2)/m2))
 
-    def V_th(self,φ,T,Λ,Π=0):
-        ########################################################################
-        # Perturbative thermal potential
-        # returns:
-        #   double (n,) ---- potential
-        # inputs:
-        #   double (n,) φ -- field value
-        #   double (n,) m2 - field-dependent mass squared m^2(φ) = V''(φ)
-        #   double T ------- temperature
-        ########################################################################
-        #J_B,J_B_err = integrate.quad_vec(
-        #    lambda x: x**2 *np.log(1 - np.exp(-((1.0 + 0.j)*(x**2 + m2/T**2))**0.5)),
-        #    0, np.inf,epsrel=self.rtol)
-        m2 = self.dV(φ,n=2)
-        Λ = np.maximum(Λ**2-m2,0)**0.5 + 0j
-        m2 += Π
+    def V_th(self, φ, Λ, T, Π=0., QSEA=True):
+        """Perturbative thermal effective potential at one-loop.
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field values at which to evaluate potential.
+        Λ : float
+            UV cutoff.
+        T : float
+            Temperature.
+        Π : ndarray or float, optional
+            The thermal dressing of the squared mass. Default is 0.
+        QSEA : bool, default=True
+            If `True`, treats `Λ` as the QSEA fluctuation cutoff, so that the
+            momentum cutoff `p^2 < Λ^2 - m^2(φ)` is field-dependent. If `False`,
+            treats `Λ` directly as the momentum cutoff `p^2 < Λ^2`.
+
+        Returns
+        -------
+        ndarray or float
+            Thermal potential with same shape as `φ`.
+        """
+        # TODO : check thermal potential for field dependent cutoff
+        m2 = self.dV(φ,n=2) + Π
+        if QSEA: Λ = np.maximum(Λ**2-m2,0)**0.5 + 0j
         # define x = p/Λ,
         J_B,J_B_err = integrate.quad_vec(
             lambda x: x**2 *np.log(1 - np.exp(-np.sqrt((1.0 + 0.j)*((x*Λ/T)**2 + m2/T**2)))),
             self.atol,1.,epsrel=self.rtol,epsabs=self.atol)
         return T*Λ**3/(2*π**2) * J_B
 
-    def V_eff(self,φ,Λ,T=None):
-        ########################################################################
-        # One loop effective potential
-        # returns:
-        #   double (n,) --- potential
-        # arguments:
-        #   double (n,) φ - field value
-        #   double Λ ------ FRG UV cutoff
-        #   double T ------ temperature
-        ########################################################################
+    def V_eff(self, φ, Λ, T=None, QSEA=True):
+        """One loop effective potential.
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field values at which to evaluate potential.
+        Λ : float
+            UV cutoff.
+        T : float
+            Temperature.
+        QSEA : bool, default=True
+            If `True`, treats `Λ` as the QSEA fluctuation cutoff, so that the
+            momentum cutoff `p^2 < Λ^2 - m^2(φ)` is field-dependent. If `False`,
+            treats `Λ` directly as the momentum cutoff `p^2 < Λ^2`.
+
+
+        Returns
+        -------
+        ndarray or float
+            Effective potential with same shape as `φ`.
+        """
         if T == None or T == 0:
             return self.V(φ) + self.V_CW(φ,Λ)
         else:
             Π = 1/24. * T**2 * self.dV(φ,n=4)
-            return self.V(φ) + self.V_CW(φ,Λ,Π=Π) + self.V_th(φ,T,Λ,Π=Π)
+            return self.V(φ) + self.V_CW(φ,Λ,Π=Π) + self.V_th(φ,Λ,T,Π=Π)
 
-    def flow_eqn(self,k,U,φ):
-        ########################################################################
-        # Exact flow equation for the quasi-stationary effective action
-        # returns:
-        #   double (n,) --- k-derivative of effective potential ∂_k U
-        # arguments:
-        #   double k ------ FRG scale k
-        #   double (n,) U - scale-dependent effective action at the scale k
-        #   double (n,) φ - field values at which U is evaluated
-        #
-        #   dict options {
-        #       print_k=False - if True, print k
-        #   }
-        ########################################################################
+    def flow_eqn(self, k, U, φ, options=None):
+        """Exact flow equation for the quasi-stationary effective action (QSEA)
+        in the local potential approximation (LPA) at zero-temperature
+
+        Parameters
+        ----------
+        k : float
+            FRG scale
+        U : ndarray shape (n,) or (n,m)
+            scale-dependent effective action at the scale `k`. For explicit
+            methods such as `RK45`, `U` is 1D; for implicit methods such as
+            `BDF` it must be allowed to have shape (n,m), where the 0th axis
+            corresponds to `φ`.
+        φ : ndarray shape (n,)
+            field values at which `U` is evaluated.
+        **options : dict or None, optional
+            Additional arguments passed to flow equation.
+
+        Options
+        -------
+        print_k : bool
+            If `True`, print `k` at each `solve_ivp` step
+
+        Returns
+        -------
+        ndarray shape (n,) or (n,m)
+            `k`-derivative of the effective potential `U`
+        """
         if options == None: options = {}
         options.setdefault('print_k',False)
 
@@ -129,24 +191,45 @@ class Scalar:
         result = k*cond/V4 * (-(kt2 + Upp) + np.sqrt((kt2 + Upp)**2 + kt2**2*V4/(16*π**2)))
         return result
 
-    def flow_eqn_unmodified(self,k,U,φ,Λ=None,options=None):
-        ########################################################################
-        # Exact flow equation for the effective action in the unmodified FRG.
-        # Use this flow equation to compare the (non-convex) QSEA to the
-        # (convex) unmodified FRG
-        # returns:
-        #   double (n,) ---- k-derivative of effective potential ∂_k U
-        # arguments:
-        #   double k ------- FRG scale k
-        #   double (n,) U -- scale-dependent effective action at the scale k
-        #   double (n,) φ -- field values at which U is evaluated
-        #   double Λ ------- QSEA cutoff scale that applies the momentum cutoff p^2 + V''(φ) < Λ^2
-        #                    if None, no condition is applied to the flow.
-        #   dict options {
-        #       pcond=True -------- if True, apply momentum cutoff p^2 + V''(φ) < Λ^2 to the flow
-        #       print_k=False - if True, print k
-        #   }
-        ########################################################################
+    def flow_eqn_unmodified(self, k, U, φ, Λ=None, options=None):
+        """Exact flow equation for the effective action in the unmodified FRG
+        in the local potential approximation (LPA) at zero-temperature.
+        Use this flow equation to compare the (non-convex) QSEA to the
+        (convex) unmodified FRG.
+
+        Parameters
+        ----------
+        k : float
+            FRG scale
+        U : ndarray shape (n,) or (n,m)
+            scale-dependent effective action at the scale `k`. For explicit
+            methods such as `RK45`, `U` is 1D; for implicit methods such as
+            `BDF` it must be allowed to have shape (n,m), where the 0th axis
+            corresponds to `φ`.
+        φ : ndarray shape (n,)
+            field values at which `U` is evaluated.
+        Λ : float or None, optional
+            QSEA fluctuation-scale cutoff to match the perturbative and QSEA
+            cutoff scheme. If `None`, no condition is applied to the flow.
+            Default is `None`; however, `scalar.flow` passes `Λ=k[0]` by default.
+            Cutoff is only applied if `options['pcond'] == True`.
+        **options : dict or None, optional
+            Additional arguments passed to flow equation.
+
+        Options
+        -------
+        print_k : bool, default=False
+            If `True`, print `k` at each `solve_ivp` step
+        pcond : bool, default=True
+            if `True` and `Lambda != None`, apply QSEA fluctuation cutoff
+            `p^2 < Λ^2 - m^2(φ)` to the flow. Otherwise, a simple momentum
+            cutoff `p^2 < Λ^2` is used.
+
+        Returns
+        -------
+        ndarray shape (n,) or (n,m)
+            `k`-derivative of the effective potential `U`
+        """
         if options == None: options = {}
         options.setdefault('pcond',True)
         options.setdefault('print_k',False)
@@ -163,34 +246,63 @@ class Scalar:
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
 
-    def flow(self,φ,k,eqn='LPA_0T',method='RK45',verbose=True,options=None):
-        ########################################################################
-        # solve flow equations using grid method, in which φ is discretized and
-        # k is treated continuously using Runge-Kutta
-        # return solution object:
-        # {
-        #   double (m,n) U -- effective potential over (k,φ)
-        #   double (m,) k --- RG scale
-        #   double (n,) φ --- field value
-        #   double T -------- temperature
-        #   double Λ -------- cutoff scale
-        #   string method --- method used in scipy.solve_ivp
-        # }
-        # arguments:
-        #   double (n,) φ --- field value
-        #   double (m,) k --- evaluation points for RG scale
-        #   string eqn ------ flow equation to be used; supported equations are listed below
-        #   string method --- method used in scipy.solve_ivp
-        #   dict options ---- options to be passed to the solver
-        #   bool verbose ---- if True, provide additional messages
-        #
-        # supported flow equations:
-        #   'LPA_0T' -------- zero-temperature flow of the QSEA in the local potential
-        #                     approximation with a Heaviside function regulator.
-        #   'LPA_unmod_0T' -- zero-temperature flow of the scale-dependent effective
-        #                     action in the unmodified FRG in the local potential
-        #                     approximation with a Heaviside function regulator.
-        ########################################################################
+    def flow(self, φ, k, eqn='LPA_0T', method='RK45', verbose=True, options=None):
+        """Solve flow equations using grid method, in which φ is discretized and
+        k is treated continuously using explicit or implicit Runge-Kutta methods.
+        This function wraps scipy's ODE solver, scipy.integrate.solve_ivp.
+
+        Parameters
+        ----------
+        φ : ndarray shape (n,)
+            Field value at which to discretize the potential. The spacing of `φ`
+            does affect the precision of the flow.
+        k : ndarray shape (m,)
+            FRG scale at which to evaluate the flow. Since the `k`-evolution is
+            treated continuously, the values of `k` do not affect the precision
+            of the flow, merely the points at which to evaluate the potential.
+        eqn : string, default='LPA_0T'
+            Name of the flow equation to be used in the flow. Currently supported
+            flow equations are:
+
+                - 'LPA_0T': zero-temperature flow of the QSEA in the local
+                potential approximation with a Heaviside function regulator.
+                - 'LPA_unmod_0T': zero-temperature flow of the scale-dependent
+                effective action in the unmodified FRG in the local potential
+                approximation with a Heaviside function regulator.
+
+        method : string, default='RK45'
+            Solution method to be passed to scipy.integrate.solve_ivp. For more
+            details, see the `scipy documentation
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_.
+        verbose : bool, default=True
+            if `True`, print additional messages on solution status.
+        **options : dict or None
+            Additional arguments passed to flow equation. For more details, see
+            the documentation for each individual flow equation.
+
+        Returns
+        -------
+        Solution object with following fields:
+        U : ndarray shape (m,n)
+            effective potential over `(k,φ)`.
+        k : ndarray shape (m,)
+            FRG scale at which the potential is evaluated. Equivalent to the
+            input parameter `k` if the solver successfully reaches the end of
+            the solution interval and no termination events occur.
+        φ : ndarray shape (n,)
+            The input parameter `φ`: field value at which the potential is
+            evaluated.
+        eqn : string
+            The input parameter `eqn`: the flow equation used in the flow
+        method : string
+            The input parameter `method`: the ODE solution method used in
+            `scipy.integrate.solve_ivp`
+        success : bool
+            Success flag from `scipy.integrate.solve_ivp`. `True` if the solver
+            reached the interval end or a termination event occurred.
+        message : string
+            Solution message from `scipy.integrate.solve_ivp`.
+        """
         if verbose: print('Starting flow: eqn =',eqn)
 
         # define equations that can be used
@@ -211,25 +323,33 @@ class Scalar:
         if verbose: print(sol.message)
 
         # return solution object
-        res = type('obj', (object,),{'U':sol.y.T,'k':sol.t,'φ':φ,'T':0,'Λ':k[0],'eqn':eqn,'method':method})
+        res = type('obj', (object,),{'U':sol.y.T,'k':sol.t,'φ':φ,'success':sol.success,'message':sol.message,'eqn':eqn,'method':method})
         return res
 
 class Phi3(Scalar):
-    ############################################################################
-    # Subclass for φ^3 theories with tree-level potential
-    # V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4
-    #
-    # Typical usage:
-    # scalar = Phi3(m2,α,λ)
-    # sol = scalar.flow(φ,k)
-    ############################################################################
+    """Subclass for φ^3 theories with tree-level potential
+
+    `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
+
+    Examples
+    --------
+    Typical usage:
+    >>> scalar = Phi3(m2,α,λ)
+    ... sol = scalar.flow(φ,k)
+    """
 
     def __init__(self,m2,α,λ):
-        ########################################################################
-        # Class constructor
-        # arguments:
-        #   double m2, α, λ - parameters of the tree-level potential
-        ########################################################################
+        """Class constructor
+
+        Parameters
+        ----------
+        m2 : float
+            Tree-level mass-squared
+        α : float
+            Tree-level cubic coupling
+        λ : float
+            Tree-level quartic coupling
+        """
         self.m2 = m2
         self.α = α
         self.λ = λ
@@ -237,15 +357,21 @@ class Phi3(Scalar):
         Scalar.__init__(self,V)
 
     def dV(self,φ,n=1):
-        ########################################################################
-        # Model-specific n'th derivative of the tree-level potential to
-        # eliminate issues with roundoff error.
-        # returns:
-        #   double (n,) --- n'th derivative of the potential w.r.t. φ
-        # arguments:
-        #   double (n,) φ - field value
-        #   int n --------- order of the derivative
-        ########################################################################
+        """Model-specific n'th derivative of the tree-level potential w.r.t. `φ`
+        to eliminate any issues with roundoff error.
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field value.
+        n : int, default=1
+            Order of the derivative.
+
+        Returns
+        -------
+        ndarray or float
+            n'th derivative of the potential w.r.t. `φ`.
+        """
         if n==1: return self.m2*φ + self.α/2.*φ*2 + self.λ/6.*φ**3 + 0j
         if n==2: return self.m2 + self.α*φ + self.λ/2.*φ**2 + 0j
         if n==3: return self.α + self.λ*φ + 0j
