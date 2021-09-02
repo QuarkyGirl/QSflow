@@ -14,13 +14,6 @@ class Scalar:
 
     For specific models (e.g. φ^3 theory) use one of the pre-written
     subclasses; these also serve as a template for writing your own subclass.
-
-    Examples
-    --------
-    Typical usage:
-    >>> V = lambda x: ...
-    ... scalar = Scalar(V)
-    ... sol = scalar.flow(φ,k)
     """
 
     def __init__(self, V):
@@ -32,8 +25,15 @@ class Scalar:
             Tree-level potential. Calling signature ``V(φ) -> ndarray or float``.
             Here `φ` is an array_like of field values. `V` must return an ndarray
             or scalar with the same shape as `φ`.
-        """
 
+        Examples
+        --------
+        Typical usage
+
+        >>> V = lambda x: ...
+        ... scalar = Scalar(V)
+        ... sol = scalar.flow(φ,k)
+        """
         self.V = V
         self.rtol,self.atol = (100*np.finfo(np.float).eps,1.e-15)   # relative and absolute tolerances
 
@@ -265,10 +265,10 @@ class Scalar:
             flow equations are:
 
                 - 'LPA_0T': zero-temperature flow of the QSEA in the local
-                potential approximation with a Heaviside function regulator.
+                  potential approximation with a Heaviside function regulator.
                 - 'LPA_unmod_0T': zero-temperature flow of the scale-dependent
-                effective action in the unmodified FRG in the local potential
-                approximation with a Heaviside function regulator.
+                  effective action in the unmodified FRG in the local potential
+                  approximation with a Heaviside function regulator.
 
         method : string, default='RK45'
             Solution method to be passed to scipy.integrate.solve_ivp. For more
@@ -330,12 +330,6 @@ class Phi3(Scalar):
     """Subclass for φ^3 theories with tree-level potential
 
     `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
-
-    Examples
-    --------
-    Typical usage:
-    >>> scalar = Phi3(m2,α,λ)
-    ... sol = scalar.flow(φ,k)
     """
 
     def __init__(self,m2,α,λ):
@@ -349,6 +343,12 @@ class Phi3(Scalar):
             Tree-level cubic coupling
         λ : float
             Tree-level quartic coupling
+
+        Examples
+        --------
+        Typical usage:
+        >>> scalar = Phi3(m2,α,λ)
+        ... sol = scalar.flow(φ,k)
         """
         self.m2 = m2
         self.α = α

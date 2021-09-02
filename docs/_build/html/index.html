@@ -1,0 +1,538 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to QSflow’s documentation! &#8212; QSflow 0.1 documentation</title>
+    
+  <link href="_static/css/theme.css" rel="stylesheet" />
+  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="#">
+<p class="title">QSflow</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   Welcome to QSflow’s documentation!
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#indices-and-tables">
+   Indices and tables
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-scalar">
+<span id="welcome-to-qsflow-s-documentation"></span><h1>Welcome to QSflow’s documentation!<a class="headerlink" href="#module-scalar" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="scalar.Phi3">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scalar.</span></span><span class="sig-name descname"><span class="pre">Phi3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">α</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">λ</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Phi3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass for φ^3 theories with tree-level potential</p>
+<p><cite>V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4</cite></p>
+<p class="rubric">Methods</p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_CW</span></code>(φ, Λ, Π=0.0[, QSEA])</p></td>
+<td><p>Coleman-Weinberg potential for cutoff renormalization at one-loop.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_eff</span></code>(φ, Λ[, T, QSEA])</p></td>
+<td><p>One loop effective potential.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_th</span></code>(φ, Λ, T, Π=0.0[, QSEA])</p></td>
+<td><p>Perturbative thermal effective potential at one-loop.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scalar.Phi3.dV" title="scalar.Phi3.dV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dV</span></code></a>(φ[, n])</p></td>
+<td><p>Model-specific n’th derivative of the tree-level potential w.r.t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow</span></code>(φ, k[, eqn, method, verbose, options])</p></td>
+<td><p>Solve flow equations using grid method, in which φ is discretized and k is treated continuously using explicit or implicit Runge-Kutta methods.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow_eqn</span></code>(k, U, φ[, options])</p></td>
+<td><p>Exact flow equation for the quasi-stationary effective action (QSEA) in the local potential approximation (LPA) at zero-temperature</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow_eqn_unmodified</span></code>(k, U, φ, Λ=None[, options])</p></td>
+<td><p>Exact flow equation for the effective action in the unmodified FRG in the local potential approximation (LPA) at zero-temperature.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Phi3.dV">
+<span class="sig-name descname"><span class="pre">dV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Phi3.dV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model-specific n’th derivative of the tree-level potential w.r.t. <cite>φ</cite>
+to eliminate any issues with roundoff error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>φ</strong><span class="classifier">ndarray or float</span></dt><dd><p>Field value.</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">int, default=1</span></dt><dd><p>Order of the derivative.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray or float</dt><dd><p>n’th derivative of the potential w.r.t. <cite>φ</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scalar.Scalar">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scalar.</span></span><span class="sig-name descname"><span class="pre">Scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">V</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parent class for computing the FRG flow of the quasi-stationary effective
+action for scalar field theories.</p>
+<p>For specific models (e.g. φ^3 theory) use one of the pre-written
+subclasses; these also serve as a template for writing your own subclass.</p>
+<p class="rubric">Methods</p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scalar.Scalar.V_CW" title="scalar.Scalar.V_CW"><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_CW</span></code></a>(φ, Λ, Π=0.0[, QSEA])</p></td>
+<td><p>Coleman-Weinberg potential for cutoff renormalization at one-loop.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scalar.Scalar.V_eff" title="scalar.Scalar.V_eff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_eff</span></code></a>(φ, Λ[, T, QSEA])</p></td>
+<td><p>One loop effective potential.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scalar.Scalar.V_th" title="scalar.Scalar.V_th"><code class="xref py py-obj docutils literal notranslate"><span class="pre">V_th</span></code></a>(φ, Λ, T, Π=0.0[, QSEA])</p></td>
+<td><p>Perturbative thermal effective potential at one-loop.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scalar.Scalar.dV" title="scalar.Scalar.dV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dV</span></code></a>(φ, δ=1e-10[, n])</p></td>
+<td><p>Generic placeholder for the nth derivative of the potential w.r.t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scalar.Scalar.flow" title="scalar.Scalar.flow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow</span></code></a>(φ, k[, eqn, method, verbose, options])</p></td>
+<td><p>Solve flow equations using grid method, in which φ is discretized and k is treated continuously using explicit or implicit Runge-Kutta methods.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scalar.Scalar.flow_eqn" title="scalar.Scalar.flow_eqn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow_eqn</span></code></a>(k, U, φ[, options])</p></td>
+<td><p>Exact flow equation for the quasi-stationary effective action (QSEA) in the local potential approximation (LPA) at zero-temperature</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scalar.Scalar.flow_eqn_unmodified" title="scalar.Scalar.flow_eqn_unmodified"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flow_eqn_unmodified</span></code></a>(k, U, φ, Λ=None[, options])</p></td>
+<td><p>Exact flow equation for the effective action in the unmodified FRG in the local potential approximation (LPA) at zero-temperature.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.V_CW">
+<span class="sig-name descname"><span class="pre">V_CW</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Λ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Π</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">QSEA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.V_CW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coleman-Weinberg potential for cutoff renormalization at one-loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>φ</strong><span class="classifier">ndarray or float</span></dt><dd><p>Field values at which to evaluate potential.</p>
+</dd>
+<dt><strong>Λ</strong><span class="classifier">float</span></dt><dd><p>UV cutoff.</p>
+</dd>
+<dt><strong>Π</strong><span class="classifier">ndarray or float, optional</span></dt><dd><p>The thermal dressing of the squared mass. Default is 0.</p>
+</dd>
+<dt><strong>QSEA</strong><span class="classifier">bool, default=True</span></dt><dd><p>If <cite>True</cite>, treats <cite>Λ</cite> as the QSEA fluctuation cutoff, so that the
+momentum cutoff <cite>p^2 &lt; Λ^2 - m^2(φ)</cite> is field-dependent. If <cite>False</cite>,
+treats <cite>Λ</cite> directly as the momentum cutoff <cite>p^2 &lt; Λ^2</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray or float</dt><dd><p>CW potential with same shape as <cite>φ</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.V_eff">
+<span class="sig-name descname"><span class="pre">V_eff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Λ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">QSEA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.V_eff" title="Permalink to this definition">¶</a></dt>
+<dd><p>One loop effective potential.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>φ</strong><span class="classifier">ndarray or float</span></dt><dd><p>Field values at which to evaluate potential.</p>
+</dd>
+<dt><strong>Λ</strong><span class="classifier">float</span></dt><dd><p>UV cutoff.</p>
+</dd>
+<dt><strong>T</strong><span class="classifier">float</span></dt><dd><p>Temperature.</p>
+</dd>
+<dt><strong>QSEA</strong><span class="classifier">bool, default=True</span></dt><dd><p>If <cite>True</cite>, treats <cite>Λ</cite> as the QSEA fluctuation cutoff, so that the
+momentum cutoff <cite>p^2 &lt; Λ^2 - m^2(φ)</cite> is field-dependent. If <cite>False</cite>,
+treats <cite>Λ</cite> directly as the momentum cutoff <cite>p^2 &lt; Λ^2</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray or float</dt><dd><p>Effective potential with same shape as <cite>φ</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.V_th">
+<span class="sig-name descname"><span class="pre">V_th</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Λ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Π</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">QSEA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.V_th" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perturbative thermal effective potential at one-loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>φ</strong><span class="classifier">ndarray or float</span></dt><dd><p>Field values at which to evaluate potential.</p>
+</dd>
+<dt><strong>Λ</strong><span class="classifier">float</span></dt><dd><p>UV cutoff.</p>
+</dd>
+<dt><strong>T</strong><span class="classifier">float</span></dt><dd><p>Temperature.</p>
+</dd>
+<dt><strong>Π</strong><span class="classifier">ndarray or float, optional</span></dt><dd><p>The thermal dressing of the squared mass. Default is 0.</p>
+</dd>
+<dt><strong>QSEA</strong><span class="classifier">bool, default=True</span></dt><dd><p>If <cite>True</cite>, treats <cite>Λ</cite> as the QSEA fluctuation cutoff, so that the
+momentum cutoff <cite>p^2 &lt; Λ^2 - m^2(φ)</cite> is field-dependent. If <cite>False</cite>,
+treats <cite>Λ</cite> directly as the momentum cutoff <cite>p^2 &lt; Λ^2</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray or float</dt><dd><p>Thermal potential with same shape as <cite>φ</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.dV">
+<span class="sig-name descname"><span class="pre">dV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">δ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.dV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic placeholder for the nth derivative of the potential w.r.t. <cite>φ</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>φ</strong><span class="classifier">ndarray or float</span></dt><dd><p>Field value.</p>
+</dd>
+<dt><strong>δ</strong><span class="classifier">ndarray or float, default=1e-10</span></dt><dd><p>Change in field value for derivative. If ndarray, must have same
+shape as <cite>φ</cite>.</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">int, default=1</span></dt><dd><p>Order of the derivative.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray or float</dt><dd><p>n’th derivative of the potential w.r.t. <cite>φ</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.flow">
+<span class="sig-name descname"><span class="pre">flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LPA_0T'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RK45'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve flow equations using grid method, in which φ is discretized and
+k is treated continuously using explicit or implicit Runge-Kutta methods.
+This function wraps scipy’s ODE solver, scipy.integrate.solve_ivp.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>φ</strong><span class="classifier">ndarray shape (n,)</span></dt><dd><p>Field value at which to discretize the potential. The spacing of <cite>φ</cite>
+does affect the precision of the flow.</p>
+</dd>
+<dt><strong>k</strong><span class="classifier">ndarray shape (m,)</span></dt><dd><p>FRG scale at which to evaluate the flow. Since the <cite>k</cite>-evolution is
+treated continuously, the values of <cite>k</cite> do not affect the precision
+of the flow, merely the points at which to evaluate the potential.</p>
+</dd>
+<dt><strong>eqn</strong><span class="classifier">string, default=’LPA_0T’</span></dt><dd><p>Name of the flow equation to be used in the flow. Currently supported
+flow equations are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘LPA_0T’: zero-temperature flow of the QSEA in the local
+potential approximation with a Heaviside function regulator.</p></li>
+<li><p>‘LPA_unmod_0T’: zero-temperature flow of the scale-dependent
+effective action in the unmodified FRG in the local potential
+approximation with a Heaviside function regulator.</p></li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><strong>method</strong><span class="classifier">string, default=’RK45’</span></dt><dd><p>Solution method to be passed to scipy.integrate.solve_ivp. For more
+details, see the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html">scipy documentation</a>.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool, default=True</span></dt><dd><p>if <cite>True</cite>, print additional messages on solution status.</p>
+</dd>
+<dt><strong>**options</strong><span class="classifier">dict or None</span></dt><dd><p>Additional arguments passed to flow equation. For more details, see
+the documentation for each individual flow equation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Solution object with following fields:</dt><dd></dd>
+<dt><strong>U</strong><span class="classifier">ndarray shape (m,n)</span></dt><dd><p>effective potential over <cite>(k,φ)</cite>.</p>
+</dd>
+<dt><strong>k</strong><span class="classifier">ndarray shape (m,)</span></dt><dd><p>FRG scale at which the potential is evaluated. Equivalent to the
+input parameter <cite>k</cite> if the solver successfully reaches the end of
+the solution interval and no termination events occur.</p>
+</dd>
+<dt><strong>φ</strong><span class="classifier">ndarray shape (n,)</span></dt><dd><p>The input parameter <cite>φ</cite>: field value at which the potential is
+evaluated.</p>
+</dd>
+<dt><strong>eqn</strong><span class="classifier">string</span></dt><dd><p>The input parameter <cite>eqn</cite>: the flow equation used in the flow</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">string</span></dt><dd><p>The input parameter <cite>method</cite>: the ODE solution method used in
+<cite>scipy.integrate.solve_ivp</cite></p>
+</dd>
+<dt><strong>success</strong><span class="classifier">bool</span></dt><dd><p>Success flag from <cite>scipy.integrate.solve_ivp</cite>. <cite>True</cite> if the solver
+reached the interval end or a termination event occurred.</p>
+</dd>
+<dt><strong>message</strong><span class="classifier">string</span></dt><dd><p>Solution message from <cite>scipy.integrate.solve_ivp</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.flow_eqn">
+<span class="sig-name descname"><span class="pre">flow_eqn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">U</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.flow_eqn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exact flow equation for the quasi-stationary effective action (QSEA)
+in the local potential approximation (LPA) at zero-temperature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>k</strong><span class="classifier">float</span></dt><dd><p>FRG scale</p>
+</dd>
+<dt><strong>U</strong><span class="classifier">ndarray shape (n,) or (n,m)</span></dt><dd><p>scale-dependent effective action at the scale <cite>k</cite>. For explicit
+methods such as <cite>RK45</cite>, <cite>U</cite> is 1D; for implicit methods such as
+<cite>BDF</cite> it must be allowed to have shape (n,m), where the 0th axis
+corresponds to <cite>φ</cite>.</p>
+</dd>
+<dt><strong>φ</strong><span class="classifier">ndarray shape (n,)</span></dt><dd><p>field values at which <cite>U</cite> is evaluated.</p>
+</dd>
+<dt><strong>**options</strong><span class="classifier">dict or None, optional</span></dt><dd><p>Additional arguments passed to flow equation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray shape (n,) or (n,m)</dt><dd><p><cite>k</cite>-derivative of the effective potential <cite>U</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scalar.Scalar.flow_eqn_unmodified">
+<span class="sig-name descname"><span class="pre">flow_eqn_unmodified</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">U</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">φ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Λ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scalar.Scalar.flow_eqn_unmodified" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exact flow equation for the effective action in the unmodified FRG
+in the local potential approximation (LPA) at zero-temperature.
+Use this flow equation to compare the (non-convex) QSEA to the
+(convex) unmodified FRG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>k</strong><span class="classifier">float</span></dt><dd><p>FRG scale</p>
+</dd>
+<dt><strong>U</strong><span class="classifier">ndarray shape (n,) or (n,m)</span></dt><dd><p>scale-dependent effective action at the scale <cite>k</cite>. For explicit
+methods such as <cite>RK45</cite>, <cite>U</cite> is 1D; for implicit methods such as
+<cite>BDF</cite> it must be allowed to have shape (n,m), where the 0th axis
+corresponds to <cite>φ</cite>.</p>
+</dd>
+<dt><strong>φ</strong><span class="classifier">ndarray shape (n,)</span></dt><dd><p>field values at which <cite>U</cite> is evaluated.</p>
+</dd>
+<dt><strong>Λ</strong><span class="classifier">float or None, optional</span></dt><dd><p>QSEA fluctuation-scale cutoff to match the perturbative and QSEA
+cutoff scheme. If <cite>None</cite>, no condition is applied to the flow.
+Default is <cite>None</cite>; however, <cite>scalar.flow</cite> passes <cite>Λ=k[0]</cite> by default.
+Cutoff is only applied if <cite>options[‘pcond’] == True</cite>.</p>
+</dd>
+<dt><strong>**options</strong><span class="classifier">dict or None, optional</span></dt><dd><p>Additional arguments passed to flow equation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray shape (n,) or (n,m)</dt><dd><p><cite>k</cite>-derivative of the effective potential <cite>U</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2021, Eleanor Hall.<br/>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
