@@ -164,7 +164,7 @@ class Scalar:
             Π = 1/24. * T**2 * self.dV(φ,n=4)
             return self.V(φ) + self.V_CW(φ,Λ,Π=Π) + self.V_th(φ,Λ,T,Π=Π)
 
-    def flow_eqn(self, k, U, φ, options=None):
+    def flow_eqn(self, k, U, φ, **options):
         """Exact flow equation for the quasi-stationary effective action (QSEA)
         in the local potential approximation (LPA) at zero-temperature
 
@@ -192,9 +192,7 @@ class Scalar:
         ndarray shape (n,) or (n,m)
             `k`-derivative of the effective potential `U`
         """
-        if options == None: options = {}
         options.setdefault('print_k', False)
-
         if options['print_k']: print(k)
 
         d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
@@ -207,7 +205,7 @@ class Scalar:
         result = k*cond/V4 * (-(kt2 + Upp) + np.sqrt((kt2 + Upp)**2 + kt2**2*V4/(16*π**2)))
         return result
 
-    def flow_eqn_unmodified(self, k, U, φ, Λ=None, options=None):
+    def flow_eqn_unmodified(self, k, U, φ, Λ=None, **options):
         """Exact flow equation for the effective action in the unmodified FRG
         in the local potential approximation (LPA) at zero-temperature.
         Use this flow equation to compare the (non-convex) QSEA to the
@@ -246,10 +244,8 @@ class Scalar:
         ndarray shape (n,) or (n,m)
             `k`-derivative of the effective potential `U`
         """
-        if options == None: options = {}
         options.setdefault('pcond',True)
         options.setdefault('print_k',False)
-
         if options['print_k']: print(k)
 
         if Λ == None or options['pcond'] == False: cond = np.ones_like(φ)
@@ -331,8 +327,8 @@ class Scalar:
 
         # define equations that can be used
         eqns = {
-            'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ,options=options),
-            'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0],options=options),
+            'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ,**options),
+            'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0],**options),
             }
 
         # choose which flow equation to use; if not valid, throw error
