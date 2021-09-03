@@ -15,51 +15,56 @@ class Scalar:
     For specific models (e.g. φ^3 theory) use one of the pre-written
     subclasses; these also serve as a template for writing your own subclass.
 
-    Attributes
+    Parameters
     ----------
     V : callable
         Tree-level potential. Calling signature ``V(φ) -> ndarray or float``.
         Here `φ` is an array_like of field values. `V` must return an ndarray
         or scalar with the same shape as `φ`.
+
+    Attributes
+    ----------
     rtol : float, default=100*`eps`
         Relative tolerance passed to ODE solver and integrator.
     atol : float, default=1e-15
         Absolute tolerance passed to ODE solver and integrator.
+
     """
 
     def __init__(self, V):
         """Class constructor.
+        """
+        # Create a wrapped private instance of the tree-level potential
+        self._wrapped_V = V
+        self.rtol,self.atol = (100*np.finfo(np.float).eps,1.e-15)
+
+    def V(self,φ):
+        """Tree-level potential
 
         Parameters
         ----------
-        V : callable
-            Tree-level potential. Calling signature ``V(φ) -> ndarray or float``.
-            Here `φ` is an array_like of field values. `V` must return an ndarray
-            or scalar with the same shape as `φ`.
+        φ : ndarray or float
+            Field value.
 
-        Examples
-        --------
-        Typical usage
-
-        >>> V = lambda x: ...
-        ... scalar = Scalar(V)
-        ... sol = scalar.flow(φ,k)
+        Returns
+        -------
+        ndarray or float
+            Tree-level potential evaluated at each `φ`.
         """
-        self.V = V
-        self.rtol,self.atol = (100*np.finfo(np.float).eps,1.e-15)   # relative and absolute tolerances
+        return self._wrapped_V(φ)
 
-    def dV(self, φ, δ=1.e-10, n=1):
+    def dV(self, φ, n=1,  δ=1.e-10):
         """Generic placeholder for the nth derivative of the potential w.r.t. `φ`
 
         Parameters
         ----------
         φ : ndarray or float
             Field value.
+        n : int, default=1
+            Order of the derivative.
         δ : ndarray or float, default=1e-10
             Change in field value for derivative. If ndarray, must have same
             shape as `φ`.
-        n : int, default=1
-            Order of the derivative.
 
         Returns
         -------
@@ -68,7 +73,7 @@ class Scalar:
         """
 
         if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
-        elif n >1: return (self.dV(φ+δ,δ=δ,n=n-1) - self.dV(φ-δ,δ=δ,n=n-1))/δ
+        elif n >1: return (self.dV(φ+δ, δ=δ, n=n-1) - self.dV(φ-δ, δ=δ, n=n-1))/δ
         else:
             print('Error on dV: n not INT >= 1')
 
@@ -94,9 +99,9 @@ class Scalar:
             CW potential with same shape as `φ`.
         """
         # TODO : double check dressing
-        m2_φ = self.dV(φ,n=2) + Π
-        m2 = self.dV(0.0,n=2) + Π
-        if QSEA: Λ = np.maximum(Λ**2-m2_φ,0)**0.5 + 0j
+        m2_φ = self.dV(φ, n=2) + Π
+        m2 = self.dV(0.0, n=2) + Π
+        if QSEA: Λ = np.maximum(Λ**2-m2_φ, 0)**0.5 + 0j
         return 1/(64*π**2)*(Λ**2 *(m2_φ-m2) + Λ**4* np.log((Λ**2 + m2_φ)/(Λ**2 + m2)) - m2_φ**2* np.log((Λ**2 + m2_φ)/m2_φ) + m2**2* np.log((Λ**2 + m2)/m2))
 
     def V_th(self, φ, Λ, T, Π=0., QSEA=True):
@@ -123,12 +128,12 @@ class Scalar:
             Thermal potential with same shape as `φ`.
         """
         # TODO : check thermal potential for field dependent cutoff
-        m2 = self.dV(φ,n=2) + Π
-        if QSEA: Λ = np.maximum(Λ**2-m2,0)**0.5 + 0j
+        m2 = self.dV(φ, n=2) + Π
+        if QSEA: Λ = np.maximum(Λ**2-m2, 0)**0.5 + 0j
         # define x = p/Λ,
         J_B,J_B_err = integrate.quad_vec(
             lambda x: x**2 *np.log(1 - np.exp(-np.sqrt((1.0 + 0.j)*((x*Λ/T)**2 + m2/T**2)))),
-            self.atol,1.,epsrel=self.rtol,epsabs=self.atol)
+            self.atol, 1., epsrel=self.rtol, epsabs=self.atol)
         return T*Λ**3/(2*π**2) * J_B
 
     def V_eff(self, φ, Λ, T=None, QSEA=True):
@@ -188,14 +193,14 @@ class Scalar:
             `k`-derivative of the effective potential `U`
         """
         if options == None: options = {}
-        options.setdefault('print_k',False)
+        options.setdefault('print_k', False)
 
         if options['print_k']: print(k)
 
-        d2 = FinDiff(0,φ,2,acc=2)           # define second derivative operator using finite differences
+        d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
         Upp = d2(U)
-        Vpp = self.dV(φ,n=2)[:,None]
-        V4 = self.dV(φ,n=4)[:,None]
+        Vpp = self.dV(φ, n=2)[:,None]
+        V4 = self.dV(φ, n=4)[:,None]
 
         kt2 = k**2 - Vpp
         cond = (kt2 > 0)
@@ -252,7 +257,7 @@ class Scalar:
             pmax = np.maximum(Λ**2-self.dV(φ,n=2),0)**0.5 + 0j
             cond = (k**2 < pmax**2)
 
-        d2 = FinDiff(0,φ,2,acc=2)           # define second derivative operator using finite differences
+        d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
         Upp = d2(U)
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
@@ -313,6 +318,14 @@ class Scalar:
             reached the interval end or a termination event occurred.
         message : string
             Solution message from `scipy.integrate.solve_ivp`.
+
+        Examples
+        --------
+        Typical usage
+
+        >>> V = lambda x: ...
+        ... scalar = Scalar(V)
+        ... sol = scalar.flow(φ,k)
         """
         if verbose: print('Starting flow: eqn =',eqn)
 
@@ -338,9 +351,18 @@ class Scalar:
         return res
 
 class Phi3(Scalar):
-    """Subclass for φ^3 theories with tree-level potential
+    """Subclass of Scalar for φ^3 theories with tree-level potential
 
     `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
+
+    Parameters
+    ----------
+    m2 : float
+        Tree-level mass-squared
+    α : float
+        Tree-level cubic coupling
+    λ : float
+        Tree-level quartic coupling
 
     Attributes
     ----------
@@ -352,33 +374,32 @@ class Phi3(Scalar):
         Tree-level quartic coupling
     """
 
-    def __init__(self,m2,α,λ):
+    def __init__(self, m2, α, λ):
         """Class constructor
-
-        Parameters
-        ----------
-        m2 : float
-            Tree-level mass-squared
-        α : float
-            Tree-level cubic coupling
-        λ : float
-            Tree-level quartic coupling
-
-        Examples
-        --------
-        Typical usage:
-        >>> scalar = Phi3(m2,α,λ)
-        ... sol = scalar.flow(φ,k)
         """
         self.m2 = m2
         self.α = α
         self.λ = λ
-        V = lambda φ: 1/2.*self.m2*φ**2 + self.α/6.*φ**3 + self.λ/24.*φ**4 + 0j
-        Scalar.__init__(self,V)
 
-    def dV(self,φ,n=1):
-        """Model-specific nth derivative of the tree-level potential w.r.t. `φ`
-        to eliminate any issues with roundoff error.
+        Scalar.__init__(None)
+
+    def V(self, φ):
+        """Tree-level potential specific to φ^3 theories.
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field value.
+
+        Returns
+        -------
+        ndarray or float
+            Tree-level potential evaluated at each `φ`.
+        """
+        return 1/2 * self.m2 * φ**2 + 1/6 * self.α * φ**3 + 1/24 * self.λ * φ**4
+
+    def dV(self, φ, n=1):
+        """Nth derivative of the potential w.r.t. `φ`
 
         Parameters
         ----------
@@ -391,7 +412,7 @@ class Phi3(Scalar):
         -------
         ndarray or float
             nth derivative of the potential w.r.t. `φ`.
-        """
+            """
         if n==1: return self.m2*φ + self.α/2.*φ*2 + self.λ/6.*φ**3 + 0j
         if n==2: return self.m2 + self.α*φ + self.λ/2.*φ**2 + 0j
         if n==3: return self.α + self.λ*φ + 0j
