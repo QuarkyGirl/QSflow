@@ -4,6 +4,7 @@ from scipy import integrate,optimize
 from matplotlib import rc,rcParams,colors
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
+import inspect
 
 π = np.pi
 γ_E = np.euler_gamma
@@ -31,11 +32,12 @@ class Scalar:
 
     """
 
-    def __init__(self, V):
+    def __init__(self, V, dV=None):
         """Class constructor.
         """
         # Create a wrapped private instance of the tree-level potential
-        self._wrapped_V = V
+        self._V = V
+        self._dV = dV
         self.rtol,self.atol = (100*np.finfo(np.float).eps,1.e-15)
 
     def V(self,φ):
@@ -51,7 +53,7 @@ class Scalar:
         ndarray or float
             Tree-level potential evaluated at each `φ`.
         """
-        return self._wrapped_V(φ)
+        return self._V(φ)
 
     def dV(self, φ, n=1,  δ=1.e-10):
         """Generic placeholder for the nth derivative of the potential w.r.t. `φ`
@@ -71,11 +73,13 @@ class Scalar:
         ndarray or float
             nth derivative of the potential w.r.t. `φ`.
         """
-
-        if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
-        elif n >1: return (self.dV(φ+δ, δ=δ, n=n-1) - self.dV(φ-δ, δ=δ, n=n-1))/δ
+        if self._dV == None:
+            if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
+            elif n > 1: return (self.dV(φ+δ, δ=δ, n=n-1) - self.dV(φ-δ, δ=δ, n=n-1))/δ
+            else:
+                print('Error on dV: n not INT >= 1')
         else:
-            print('Error on dV: n not INT >= 1')
+            return self._dV(φ,n=n)
 
     def V_CW(self, φ, Λ, Π=0., QSEA=True):
         """Coleman-Weinberg potential for cutoff renormalization at one-loop.
@@ -288,7 +292,7 @@ class Scalar:
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_.
         verbose : bool, default=True
             if `True`, print additional messages on solution status.
-        **options : dict or None
+        options : dict or None
             Additional arguments passed to flow equation. For more details, see
             the documentation for each individual flow equation.
 
@@ -326,6 +330,7 @@ class Scalar:
         if verbose: print('Starting flow: eqn =',eqn)
 
         # define equations that can be used
+        options = {} if options == None else options
         eqns = {
             'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ,**options),
             'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0],**options),
@@ -346,7 +351,90 @@ class Scalar:
         res = type('obj', (object,),{'U':sol.y.T,'k':sol.t,'φ':φ,'success':sol.success,'message':sol.message,'eqn':eqn,'method':method})
         return res
 
-class Phi3(Scalar):
+class ParametricScalar(Scalar):
+    """Subclass of Scalar for families of theories in which the tree-level
+    potential is parameterized by a set of finite parameters `params`. This
+    class serves as the parent class to specific models such as `Phi3`.
+
+    Parameters
+    ----------
+    V : callable
+        Tree-level potential whose signature includes dependence on `params`.
+        Calling signature must be ``V(φ, **params) -> ndarray or float``, where here `φ` is an
+        ndarray of field values and `params` are named keyword parameters
+        controlling the shaoe of the potential.
+    **params : array_like
+        Parameters controlling the shape of the potential.
+    dV : callable or None, optional
+        Nth derivative of tree-level potential. calling signature must be
+        ``dV(φ, **params, n=1) -> ndarray or float``, where `φ` and `params` are
+        as above and `n` is the order of the derivative. if `None`, dV defaults
+        to the finite step-size fallback. Specifying `dV` is not required, but
+        is recommended to eliminate roundoff error. Default is `None`.
+
+    Attributes
+    ----------
+    params : array_like
+        Parameters controlling the shape of the potential
+    rtol : float, default=100*`eps`
+        Relative tolerance passed to ODE solver and integrator.
+    atol : float, default=1e-15
+        Absolute tolerance passed to ODE solver and integrator.
+    """
+
+    def __init__(self, V, dV=None, **params):
+        self._params = params
+        for key,value in params.items():
+            setattr(self, key, value)
+        Scalar.__init__(self,V,dV=dV)
+
+    def __setattr__(self,name,value):
+        self.__dict__[name] = value
+        if '_params' in self.__dict__ and name in self._params.keys():
+            self.__dict__['_params'][name] = value
+
+    def V(self, φ):
+        """Tree-level potential
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field value.
+
+        Returns
+        -------
+        ndarray or float
+            Tree-level potential evaluated at each `φ`.
+        """
+        return self._V(φ,**self._params)
+
+    def dV(self, φ, n=1,  δ=1.e-10):
+        """Generic placeholder for the nth derivative of the potential w.r.t. `φ`
+
+        Parameters
+        ----------
+        φ : ndarray or float
+            Field value.
+        n : int, default=1
+            Order of the derivative.
+        δ : ndarray or float, default=1e-10
+            Change in field value for derivative. If ndarray, must have same
+            shape as `φ`.
+
+        Returns
+        -------
+        ndarray or float
+            nth derivative of the potential w.r.t. `φ`.
+        """
+        if self._dV == None:
+            if n == 1: return (self.V(φ+δ) - self.V(φ-δ))/δ
+            elif n >1: return (self.dV(φ+δ, δ=δ, n=n-1) - self.dV(φ-δ, δ=δ, n=n-1))/δ
+            else:
+                print('Error on dV: n not INT >= 1')
+        else:
+            return self._dV(φ,n=n,**self._params)
+
+class Phi3(ParametricScalar):
     """Subclass of Scalar for φ^3 theories with tree-level potential
 
     `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
@@ -373,48 +461,14 @@ class Phi3(Scalar):
     def __init__(self, m2, α, λ):
         """Class constructor
         """
-        self.m2 = m2
-        self.α = α
-        self.λ = λ
-
-        Scalar.__init__(None)
-
-    def V(self, φ):
-        """Tree-level potential specific to φ^3 theories.
-
-        Parameters
-        ----------
-        φ : ndarray or float
-            Field value.
-
-        Returns
-        -------
-        ndarray or float
-            Tree-level potential evaluated at each `φ`.
-        """
-        return 1/2 * self.m2 * φ**2 + 1/6 * self.α * φ**3 + 1/24 * self.λ * φ**4
-
-    def dV(self, φ, n=1):
-        """Nth derivative of the potential w.r.t. `φ`
-
-        Parameters
-        ----------
-        φ : ndarray or float
-            Field value.
-        n : int, default=1
-            Order of the derivative.
-
-        Returns
-        -------
-        ndarray or float
-            nth derivative of the potential w.r.t. `φ`.
-            """
-        if n==1: return self.m2*φ + self.α/2.*φ*2 + self.λ/6.*φ**3 + 0j
-        if n==2: return self.m2 + self.α*φ + self.λ/2.*φ**2 + 0j
-        if n==3: return self.α + self.λ*φ + 0j
-        if n==4: return self.λ*np.ones_like(φ)
-        if n>4: return np.zeros_like(φ)
-        if n==0: return self.V(φ)
-        if n < 0:
-            print('ERROR at Phi3.dV: n < 0')
-            return -1
+        V = lambda φ, m2, α, λ: 1/2 * m2 * φ**2 + 1/6 * α * φ**3 + 1/24 * λ * φ**4
+        def dV(φ, m2, α, λ, n=1):
+            if n==1: return m2*φ + α/2.*φ*2 + λ/6.*φ**3 + 0j
+            if n==2: return m2 + α*φ + λ/2.*φ**2 + 0j
+            if n==3: return α + λ*φ + 0j
+            if n==4: return λ*np.ones_like(φ)
+            if n>4: return np.zeros_like(φ)
+            if n==0: return V(φ)
+            if n < 0:
+                raise ValueError('Phi3.dV: order of the derivative n is less than 0')
+        ParametricScalar.__init__(self, V, dV=dV, m2=m2, α=α, λ=λ)
