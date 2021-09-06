@@ -251,10 +251,11 @@ class Scalar:
         options.setdefault('pcond',True)
         options.setdefault('print_k',False)
         if options['print_k']: print(k)
+        if np.any(np.imag(U)): print(U)
 
         if Λ == None or options['pcond'] == False: cond = np.ones_like(φ)
         else:
-            pmax = np.maximum(Λ**2-self.dV(φ,n=2),0)**0.5 + 0j
+            pmax = np.maximum(Λ**2-self.dV(φ,n=2),0)**0.5
             cond = (k**2 < pmax**2)
 
         d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
@@ -463,9 +464,9 @@ class Phi3(ParametricScalar):
         """
         V = lambda φ, m2, α, λ: 1/2 * m2 * φ**2 + 1/6 * α * φ**3 + 1/24 * λ * φ**4
         def dV(φ, m2, α, λ, n=1):
-            if n==1: return m2*φ + α/2.*φ*2 + λ/6.*φ**3 + 0j
-            if n==2: return m2 + α*φ + λ/2.*φ**2 + 0j
-            if n==3: return α + λ*φ + 0j
+            if n==1: return m2*φ + α/2.*φ*2 + λ/6.*φ**3
+            if n==2: return m2 + α*φ + λ/2.*φ**2
+            if n==3: return α + λ*φ
             if n==4: return λ*np.ones_like(φ)
             if n>4: return np.zeros_like(φ)
             if n==0: return V(φ)
