@@ -9,6 +9,11 @@ import inspect
 π = np.pi
 γ_E = np.euler_gamma
 
+class FlowResult(optimize.OptimizeResult):
+    """This class represents the solution of the flow equation
+    """
+    pass
+
 class Scalar:
     """Parent class for computing the FRG flow of the quasi-stationary effective
     action for scalar field theories.
@@ -168,7 +173,7 @@ class Scalar:
             Π = 1/24. * T**2 * self.dV(φ,n=4)
             return self.V(φ) + self.V_CW(φ,Λ,Π=Π) + self.V_th(φ,Λ,T,Π=Π)
 
-    def flow_eqn(self, k, U, φ, **options):
+    def QSEA_0T(self, k, U, φ, **options):
         """Exact flow equation for the quasi-stationary effective action (QSEA)
         in the local potential approximation (LPA) at zero-temperature
 
@@ -196,7 +201,6 @@ class Scalar:
         ndarray shape (n,) or (n,m)
             `k`-derivative of the effective potential `U`
         """
-        options.setdefault('print_k', False)
         if options['print_k']: print(k)
 
         d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
@@ -209,7 +213,7 @@ class Scalar:
         result = k*cond/V4 * (-(kt2 + Upp) + np.sqrt((kt2 + Upp)**2 + kt2**2*V4/(16*π**2)))
         return result
 
-    def flow_eqn_unmodified(self, k, U, φ, Λ=None, **options):
+    def Litim_0T(self, k, U, φ, Λ=None, **options):
         """Exact flow equation for the effective action in the unmodified FRG
         in the local potential approximation (LPA) at zero-temperature.
         Use this flow equation to compare the (non-convex) QSEA to the
@@ -248,12 +252,10 @@ class Scalar:
         ndarray shape (n,) or (n,m)
             `k`-derivative of the effective potential `U`
         """
-        options.setdefault('pcond',True)
-        options.setdefault('print_k',False)
         if options['print_k']: print(k)
-        if np.any(np.imag(U)): print(U)
 
-        if Λ == None or options['pcond'] == False: cond = np.ones_like(φ)
+        if Λ == None or options['pcond'] == False:
+            cond = np.ones_like(φ)
         else:
             pmax = np.maximum(Λ**2-self.dV(φ,n=2),0)**0.5
             cond = (k**2 < pmax**2)
@@ -263,7 +265,7 @@ class Scalar:
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
 
-    def flow(self, φ, k, eqn='LPA_0T', method='RK45', verbose=True, options=None):
+    def flow(self, φ, k, eqn='QSEA_0T', method='RK45', verbose=True, options=None):
         """Solve flow equations using grid method, in which φ is discretized and
         k is treated continuously using explicit or implicit Runge-Kutta methods.
         This function wraps scipy's ODE solver, scipy.integrate.solve_ivp.
@@ -281,9 +283,9 @@ class Scalar:
             Name of the flow equation to be used in the flow. Currently supported
             flow equations are:
 
-                - 'LPA_0T': zero-temperature flow of the QSEA in the local
+                - 'QSEA_0T': zero-temperature flow of the QSEA in the local
                   potential approximation with a Heaviside function regulator.
-                - 'LPA_unmod_0T': zero-temperature flow of the scale-dependent
+                - 'Litim_0T': zero-temperature flow of the scale-dependent
                   effective action in the unmodified FRG in the local potential
                   approximation with a Heaviside function regulator.
 
@@ -332,25 +334,33 @@ class Scalar:
 
         # define equations that can be used
         options = {} if options == None else options
+        options.setdefault('pcond',True)
+        options.setdefault('print_k',False)
+        options.setdefault('Λ',k[0])
         eqns = {
-            'LPA_0T':       lambda ki,Ui: self.flow_eqn(ki,Ui,φ,**options),
-            'LPA_unmod_0T': lambda ki,Ui: self.flow_eqn_unmodified(ki,Ui,φ,Λ=k[0],**options),
+            'QSEA_0T': self.QSEA_0T,
+            'Litim_0T': self.Litim_0T
             }
 
         # choose which flow equation to use; if not valid, throw error
-        if eqn in eqns: flow_eqn = eqns[eqn]
-        else:
-            print('ERROR at Scalar.flow: eqn =',eqn,'not a valid option.',
-            'Please choose one of:', list(eqns.keys()))
+        if eqn in eqns:
+            eqn = eqns[eqn]
+        elif type(eqn) == str:
+            raise ValueError('eqn =' + eqn + 'not a valid option. \
+                Please choose one of:'+ repr(list((eqns.keys()))))
 
         # solve flow
-        sol = integrate.solve_ivp(flow_eqn, t_span=(k[0],k[-1]),t_eval=k,
-            y0=self.V(φ),rtol=self.rtol,atol=self.atol,vectorized=True,method=method)
+        sol = integrate.solve_ivp(lambda x,y: eqn(x,y,φ,**options),
+                                    t_span=(k[0],k[-1]), t_eval=k, y0=self.V(φ),
+                                    rtol=self.rtol, atol=self.atol,
+                                    vectorized=True, method=method)
+
         if verbose: print(sol.message)
 
         # return solution object
-        res = type('obj', (object,),{'U':sol.y.T,'k':sol.t,'φ':φ,'success':sol.success,'message':sol.message,'eqn':eqn,'method':method})
-        return res
+        return FlowResult(U=sol.y.T, k=sol.t, φ=φ, success=sol.success,
+                          message=sol.message, status=sol.status, eqn=eqn,
+                          method=method)
 
 class ParametricScalar(Scalar):
     """Subclass of Scalar for families of theories in which the tree-level

@@ -5,6 +5,8 @@ from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
 from scalar import Phi3
 from plot_h import *
+from time import process_time
+
 π = np.pi
 
 ################################################################################
@@ -36,7 +38,7 @@ k = np.array([Λ,0.])                                # Define k at which to eval
                                                     # Spacing of φ DOES affect precision
 
 sol = scalar.flow(φ,k)                              # Solve the flow over the defined φ,k
-U = np.real(sol.U)                                  # Extract the QS effective potential from solution object
+U = sol.U                                           # Extract the QS effective potential from solution object
 
 
 d = FinDiff(1,φ,1,acc=2)                            # Optionally, we can normalize
@@ -52,8 +54,8 @@ v_eff -= v_eff[arg_v]                               #
 scalar.rtol,scalar.atol = (1.e-11,1.e-11)           # Calculate the effective potential for the
 k_unmod = np.array([Λ,kmin_unmod])                        # unmodified FRG. We strongly recommend using
 sol_unmod = scalar.flow(φ,k_unmod,                  # the BDF solver and less strict tolerances
-    eqn='LPA_unmod_0T',method='BDF')                # due to the stiffness of the unmodified flow equation.
-U_unmod = np.real(sol_unmod.U)                      #
+    eqn='Litim_0T',method='BDF')              # due to the stiffness of the unmodified flow equation.
+U_unmod = sol_unmod.U                               #
 U_unmod -= U_unmod[np.arange(arg.size),arg][:,None] # Normalize to FV
 
 v_tree = np.real(scalar.V(φ))                       # Lasly, get the tree-level potential
