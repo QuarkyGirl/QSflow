@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy import integrate,optimize
+from scipy import integrate,optimize,interpolate
 from matplotlib import rc,rcParams,colors
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
@@ -265,7 +265,7 @@ class Scalar:
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
 
-    def flow(self, φ, k, eqn='QSEA_0T', method='RK45', verbose=True, options=None):
+    def flow(self, φ, k, eqn='QSEA_0T', method='RK45', verbose=False, dense_output=False, options=None):
         """Solve flow equations using grid method, in which φ is discretized and
         k is treated continuously using explicit or implicit Runge-Kutta methods.
         This function wraps scipy's ODE solver, scipy.integrate.solve_ivp.
@@ -333,7 +333,7 @@ class Scalar:
         if verbose: print('Starting flow: eqn =',eqn)
 
         # define equations that can be used
-        options = {} if options == None else options
+        if options == None: options = {}
         options.setdefault('pcond',True)
         options.setdefault('print_k',False)
         options.setdefault('Λ',k[0])
@@ -357,8 +357,12 @@ class Scalar:
 
         if verbose: print(sol.message)
 
+        U = sol.y.T
+        if dense_output:
+            U = tuple([interpolate.interp1d(φ, u, kind='cubic') for u in U])
+
         # return solution object
-        return FlowResult(U=sol.y.T, k=sol.t, φ=φ, success=sol.success,
+        return FlowResult(U=U, k=sol.t, φ=φ, success=sol.success,
                           message=sol.message, status=sol.status, eqn=eqn,
                           method=method)
 
@@ -371,11 +375,15 @@ class ParametricScalar(Scalar):
     ----------
     V : callable
         Tree-level potential whose signature includes dependence on `params`.
-        Calling signature must be ``V(φ, **params) -> ndarray or float``, where here `φ` is an
-        ndarray of field values and `params` are named keyword parameters
-        controlling the shaoe of the potential.
-    **params : array_like
-        Parameters controlling the shape of the potential.
+        Calling signature must be ``V(φ, ...) -> ndarray or float``, where here
+        the first argument `φ` is an ndarray of field values and the subsequent
+        arguments `...` are parameters controlling the shape of the potential.
+    **params: dict
+        Parameters controlling the shape of the potential. if not empty, the
+        keys in `params` must match the names of the 2nd-onwards parameters of `V',
+        and will be stored as an attribute in `ParametricScalar`. E.g., if `V` has
+        signature `V(φ, a, b, c)`, then `params` must be specified as e.g.
+        `a=1, b=2, c=3` and will be stored as `ParametricScalar.a`, etc.
     dV : callable or None, optional
         Nth derivative of tree-level potential. calling signature must be
         ``dV(φ, **params, n=1) -> ndarray or float``, where `φ` and `params` are
@@ -385,8 +393,6 @@ class ParametricScalar(Scalar):
 
     Attributes
     ----------
-    params : array_like
-        Parameters controlling the shape of the potential
     rtol : float, default=100*`eps`
         Relative tolerance passed to ODE solver and integrator.
     atol : float, default=1e-15
@@ -394,15 +400,23 @@ class ParametricScalar(Scalar):
     """
 
     def __init__(self, V, dV=None, **params):
-        self._params = params
-        for key,value in params.items():
-            setattr(self, key, value)
-        Scalar.__init__(self,V,dV=dV)
+        # check that correspond to arguments of V
+        args = set(inspect.getfullargspec(V).args[1:])
+        if not args >= params.keys():
+            raise ValueError('`params`' + repr(params - args) + 'do not match'
+                             'the arguments of V.')
+
+        # set parameters, initializing with None if not defined
+        self.params = dict.fromkeys(args) | params
+        Scalar.__init__(self, V, dV=dV)
 
     def __setattr__(self,name,value):
         self.__dict__[name] = value
-        if '_params' in self.__dict__ and name in self._params.keys():
-            self.__dict__['_params'][name] = value
+        if name == 'params':
+            for key,val in value.items():
+                self.__dict__[key] = val
+        elif 'params' in self.__dict__ and name in self.params.keys():
+            self.__dict__['params'][name] = value
 
     def V(self, φ):
         """Tree-level potential
@@ -417,7 +431,7 @@ class ParametricScalar(Scalar):
         ndarray or float
             Tree-level potential evaluated at each `φ`.
         """
-        return self._V(φ,**self._params)
+        return self._V(φ,**self.params)
 
     def dV(self, φ, n=1,  δ=1.e-10):
         """Generic placeholder for the nth derivative of the potential w.r.t. `φ`
@@ -443,10 +457,10 @@ class ParametricScalar(Scalar):
             else:
                 print('Error on dV: n not INT >= 1')
         else:
-            return self._dV(φ,n=n,**self._params)
+            return self._dV(φ,n=n,**self.params)
 
 class Phi3(ParametricScalar):
-    """Subclass of Scalar for φ^3 theories with tree-level potential
+    """Subclass of ParametricScalar for φ^3 theories with tree-level potential
 
     `V(φ) = 1/2 m^2 φ^2 + 1/3! α φ^3 + 1/4! λ φ^4`
 
