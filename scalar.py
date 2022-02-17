@@ -5,6 +5,7 @@ from matplotlib import rc,rcParams,colors
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
 import inspect
+from scipy.misc import derivative
 
 π = np.pi
 γ_E = np.euler_gamma
@@ -113,7 +114,7 @@ class Scalar:
         if QSEA: Λ = np.maximum(Λ**2-m2_φ, 0)**0.5 + 0j
         return 1/(64*π**2)*(Λ**2 *(m2_φ-m2) + Λ**4* np.log((Λ**2 + m2_φ)/(Λ**2 + m2)) - m2_φ**2* np.log((Λ**2 + m2_φ)/m2_φ) + m2**2* np.log((Λ**2 + m2)/m2))
 
-    def V_th(self, φ, Λ, T, Π=0., QSEA=True):
+    def V_th(self, φ, Λ, T, dressing='PD', **options):
         """Perturbative thermal effective potential at one-loop.
 
         Parameters
@@ -124,28 +125,96 @@ class Scalar:
             UV cutoff.
         T : float
             Temperature.
-        Π : ndarray or float, optional
+        dressing : ndarray, float, string, or None optional
             The thermal dressing of the squared mass. Default is 0.
         QSEA : bool, default=True
             If `True`, treats `Λ` as the QSEA fluctuation cutoff, so that the
             momentum cutoff `p^2 < Λ^2 - m^2(φ)` is field-dependent. If `False`,
             treats `Λ` directly as the momentum cutoff `p^2 < Λ^2`.
+        method : string, default='lm'
+            Method passed to scipy.optimize.root for dressings PD and FD.
 
         Returns
         -------
         ndarray or float
             Thermal potential with same shape as `φ`.
         """
-        # TODO : check thermal potential for field dependent cutoff
-        m2 = self.dV(φ, n=2) + Π
-        if QSEA: Λ = np.maximum(Λ**2-m2, 0)**0.5 + 0j
-        # define x = p/Λ,
-        J_B,J_B_err = integrate.quad_vec(
-            lambda x: x**2 *np.log(1 - np.exp(-np.sqrt((1.0 + 0.j)*((x*Λ/T)**2 + m2/T**2)))),
-            self.atol, 1., epsrel=self.rtol, epsabs=self.atol)
-        return T*Λ**3/(2*π**2) * J_B
+        options.setdefault('QSEA',True)
+        options.setdefault('method','lm')
 
-    def V_eff(self, φ, Λ, T=None, QSEA=True):
+        if dressing == 'PD':
+            d = FinDiff(0, φ, 1, acc=2)
+            d2 = FinDiff(0, φ, 2, acc=2)
+            d1V = lambda δm2: derivative(lambda φ: self.V_th(φ, Λ, T, dressing=δm2), φ, n=1, dx=1.e-3,order=3)
+
+            def f(δm2):
+                res = δm2 - d(d1V(δm2))
+                print(np.amax(res))
+                return res
+
+            x0 = d2(self.V_th(φ, Λ, T, dressing=0.0))
+            sol = optimize.root(f,x0=x0,method=options['method'])
+            δm2 = sol.x
+            plt.figure()
+            plt.plot(φ,δm2)
+            plt.show()
+            print(f(δm2))
+            result = integrate.cumulative_trapezoid(d1V(δm2),φ,initial=0)
+            return result
+        if dressing == 'FD':
+            d = FinDiff(0, φ, 1, acc=2)
+            d2 = FinDiff(0, φ, 2, acc=2)
+            d1V = lambda δm2: derivative(lambda φ: self.V_th(φ, Λ, T, dressing=δm2), φ, n=1, dx=1.e-3,order=3)
+
+            def f(δm2):
+                res = δm2 - d(d1V(δm2))
+                print(np.amax(res))
+                return res
+            x0 = d2(self.V_th(φ, Λ, T, dressing=0.0))
+            sol = optimize.root(f,x0=x0,method=options['method'])
+            δm2 = sol.x
+            plt.figure()
+            plt.plot(φ,δm2)
+            plt.show()
+            print(f(δm2))
+            result = self.V_th(φ, Λ, T, dressing=δm2)
+            return result
+        elif dressing == 'TFD':
+            δm2 = derivative(lambda φ: self.V_th(φ, Λ, T, dressing=0.0), φ, n=2, dx=1.e-2,order=3)
+            result = self.V_th(φ, Λ, T, dressing=δm2)
+            return result
+        elif type(dressing) == str:
+            raise ValueError('dressing =' + dressing + "not a valid option. \
+                Please choose one of: ('PD','TFD',`None`,`float`,`ndarray`")
+        else:
+            δm2 = dressing
+
+        φ = np.atleast_1d(φ)
+        m2_φ = self.dV(φ, n=2)
+        m2 = self.dV(0.0, n=2)
+
+        if options['QSEA']: Λ = np.maximum(Λ**2-m2_φ, 0)**0.5
+
+        m2_φ += δm2
+
+        nmax = max(np.floor(np.amax(Λ)/(2*π*T)),0)
+        ωn = 2*π*T*np.arange(-nmax, nmax+1)
+
+        pmax = np.sqrt(np.maximum(Λ[...,None]**2 - ωn**2,0))
+        cond = pmax > 0
+
+        integral = T/(12*π**2) * np.real(
+            2 * pmax * (m2_φ - m2)[...,None]
+            + pmax**3 * np.log((m2_φ + Λ**2)/(m2 + Λ**2) + 0j)[...,None]
+            - 2 * (m2_φ[...,None] + ωn**2 + 0j)**1.5 * np.arctan(pmax/np.sqrt(m2_φ[...,None] + ωn**2 + 0j))
+            + 2 * (m2 + ωn**2 + 0j)**1.5 * np.arctan(pmax/np.sqrt(m2 + ωn**2 + 0j))
+        )
+
+        result = np.sum(integral * cond, axis=-1)
+
+        return result
+
+    def V_eff(self, φ, Λ, T=None,**options):
         """One loop effective potential.
 
         Parameters
@@ -168,10 +237,10 @@ class Scalar:
             Effective potential with same shape as `φ`.
         """
         if T == None or T == 0:
-            return self.V(φ) + self.V_CW(φ,Λ)
+            return self.V(φ) + self.V_CW(φ,Λ,**options)
         else:
-            Π = 1/24. * T**2 * self.dV(φ,n=4)
-            return self.V(φ) + self.V_CW(φ,Λ,Π=Π) + self.V_th(φ,Λ,T,Π=Π)
+            #Π = 1/24. * T**2 * self.dV(φ,n=4)
+            return self.V(φ) + self.V_th(φ,Λ,T,**options)
 
     def QSEA_0T(self, k, U, φ, **options):
         """Exact flow equation for the quasi-stationary effective action (QSEA)
@@ -265,7 +334,57 @@ class Scalar:
         result = k**5/(32*π**2) *1/(k**2 + Upp)*cond[:,None]
         return result
 
-    def flow(self, φ, k, eqn='QSEA_0T', method='RK45', verbose=False, dense_output=False, options=None):
+    def QSEA_T_4D(self, k, U, φ, T, **options):
+        """Exact flow equation for the quasi-stationary effective action (QSEA)
+        in the local potential approximation (LPA) at zero-temperature
+
+        Parameters
+        ----------
+        k : float
+            FRG scale
+        U : ndarray shape (n,) or (n,m)
+            scale-dependent effective action at the scale `k`. For explicit
+            methods such as `RK45`, `U` is 1D; for implicit methods such as
+            `BDF` it must be allowed to have shape (n,m), where the 0th axis
+            corresponds to `φ`.
+        φ : ndarray shape (n,)
+            field values at which `U` is evaluated.
+        T : float
+            Temperature
+        **options : dict or None, optional
+            Additional arguments passed to flow equation.
+
+        Options
+        -------
+        print_k : bool
+            If `True`, print `k` at each `solve_ivp` step
+
+        Returns
+        -------
+        ndarray shape (n,) or (n,m)
+            `k`-derivative of the effective potential `U`
+        """
+        if options['print_k']: print(k)
+
+        d2 = FinDiff(0, φ, 2, acc=2)           # define second derivative operator using finite differences
+        Upp = d2(U)
+        Vpp = self.dV(φ, n=2)[:,None]
+        V4 = self.dV(φ, n=4)[:,None]
+
+        kt2 = k**2 - Vpp
+        cond = (kt2 > 0)
+
+        nmax = np.floor(np.sqrt(max(np.amax(kt2),0.0))/(2*π*T))
+        ωn = 2*π*T*np.arange(-nmax,nmax+1)
+        Σ = np.sum(np.maximum(kt2[...,None] - ωn**2, 0)**(3/2), axis=-1)
+
+        #Σ = np.sum([np.maximum(kt2 - ωi**2, 0)**(3/2) for ωi in ωn],axis=0)
+
+        result = k*cond/V4 * (-(kt2 + Upp) + np.sqrt((kt2 + Upp)**2 + T*V4*Σ/(3*π**2)))
+        return result
+
+
+    def flow(self, φ, k, eqn='QSEA_0T', method='RK45', verbose=False, dense_output=False, **options):
         """Solve flow equations using grid method, in which φ is discretized and
         k is treated continuously using explicit or implicit Runge-Kutta methods.
         This function wraps scipy's ODE solver, scipy.integrate.solve_ivp.
@@ -333,13 +452,13 @@ class Scalar:
         if verbose: print('Starting flow: eqn =',eqn)
 
         # define equations that can be used
-        if options == None: options = {}
         options.setdefault('pcond',True)
         options.setdefault('print_k',False)
         options.setdefault('Λ',k[0])
         eqns = {
             'QSEA_0T': self.QSEA_0T,
-            'Litim_0T': self.Litim_0T
+            'Litim_0T': self.Litim_0T,
+            'QSEA_T_4D': self.QSEA_T_4D
             }
 
         # choose which flow equation to use; if not valid, throw error

@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from findiff import FinDiff
-from scalar import Phi3
+from scalar import ParametricScalar
 from plot_h import *
 from time import process_time
 
@@ -29,7 +29,8 @@ m2,α,λ = (1.4, -9., 18.5)                           # Model parameters
 Λ = 2.5                                             # QSEA cutoff scale
 kmin_unmod = 0.05
 
-scalar = Phi3(m2,α,λ)                               # Next, create a class instance
+V = lambda x,a,b,c: x
+scalar = ParametricScalar(V)                               # Next, create a class instance
 
 k = np.array([Λ,0.])                                # Define k at which to evaluate the flow
                                                     # NOTE: spacing of k does NOT affect precision
