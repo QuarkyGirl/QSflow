@@ -4,7 +4,7 @@ QSflow is a Python library for computing FRG flows of the [quasi-stationary effe
 
 ## Installation
 
-QSflow requires [Python 3](https://www.python.org/downloads/) and has been tested with 3.8.2 and 3.9.5.
+QSflow requires [Python >= 3.7](https://www.python.org/downloads/) and has been tested with 3.8.2 and 3.9.5.
 
 Use the [pip](https://pip.pypa.io/en/stable/) package manager to install the python dependencies
 
